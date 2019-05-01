@@ -11,7 +11,10 @@
 #import "InputHandler.h"
 #import "GameController.h"
 
+
+
 int main(int argc, const char * argv[]) {
+    
     @autoreleasepool {
 
         GameController* gameController = [[GameController alloc]init];
@@ -21,44 +24,67 @@ int main(int argc, const char * argv[]) {
         InputHandler* inputHandler = [[InputHandler alloc]init];
         
         int rollCount = 0;
-
+        NSString* dices = @"";
+        NSString* heldDices = @"";
+        
+       
+        
         while (YES) {
-            NSLog(@"Enter a command:\nroll - Roll dices\nhold - Hold dices\nreset - Unhold all the dices");
+            NSLog(@"\nEnter a command:\nroll - Roll dices\nhold i - Enter die index to hold/unhold e.g hold 1 2\nreset - Unhold all the dices");
             NSString* userInput = [inputHandler outputString];
+            dices = @"";
+            heldDices = @"";
             
             if ([userInput isEqualToString:@"roll"]) {
                 
                 if (rollCount < 2) {
-                    NSString* dices = @"";
-                    NSString* heldDices = @"";
                     
                     for (Dice* die in [gameController dices]) {
                         
                         if (die.isHeld == NO) {
                             [die rolldice];
-                            dices = [dices stringByAppendingString:[NSString stringWithFormat:@"%@",die]];
-                        } else {
-                            dices = [dices stringByAppendingString:[NSString stringWithFormat:@"%@",die]];
-                            heldDices = [heldDices stringByAppendingString:[NSString stringWithFormat: @"%@",die]];
                         }
                     }
-                    
-                    NSLog(@"dices:%@, held[%@], score: %ld",dices,heldDices,[gameController getScore]);
                     rollCount ++;
+
                 } else {
-                    NSLog(@"NO MORE ROLL.Score:%ld",[gameController getScore]);
+                    NSLog(@"NO MORE ROLL.");
                 }
-            
                 
+            } else if ( [userInput length]> 4 && [[userInput substringWithRange:NSMakeRange(0, 4)] isEqualToString:@"hold"] ) {
                 
-            } else if ([userInput isEqualToString:@"hold"]) {
-                                NSLog(@"Enter the index of the die?");
-                userInput = [inputHandler outputString];
-                [gameController holdDie:[userInput intValue]];
-                
+                NSString* indexesInString = [userInput substringWithRange:NSMakeRange(5, [userInput length] -5)];
+                NSArray* indexes = [indexesInString componentsSeparatedByString:@" "];
+                for (NSString* index in indexes) {
+                    if ([index intValue] != 0) {
+                        if ([index intValue] > 5 || [index intValue] < 1) {
+                            NSLog(@"Do not have that die.");
+                        } else {
+                            [gameController holdDie:[index intValue] - 1];
+                        }
+                    }
+                }
+
             } else if ([userInput isEqualToString:@"reset"]) {
                 [gameController resetDice];
+
+            } else {
+                NSLog(@"Enter a valid command.");
             }
+            
+            for (Dice* die in [gameController dices]) {
+                
+                if (die.isHeld == NO) {
+                    dices = [dices stringByAppendingString:[NSString stringWithFormat:@"%@ ",die]];
+                    heldDices = [heldDices stringByAppendingString:[NSString stringWithFormat: @"_ "]];
+                } else {
+                    dices = [dices stringByAppendingString:[NSString stringWithFormat:@"%@ ",die]];
+                    heldDices = [heldDices stringByAppendingString:[NSString stringWithFormat: @"%@ ",die]];
+                }
+            }
+            NSLog(@"dices:%@, held[%@], score: %ld",dices,heldDices,[gameController getScore]);
+        
+            // end of while
         }
     }
     return 0;
